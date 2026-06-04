@@ -42,3 +42,7 @@ jobs:
         if: github.event_name == 'pull_request'
         run: terraform plan
         working-directory: terraform/environments/dev
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main'
+        run: terraform apply -auto-approve
+        working-directory: terraform/environments/dev
