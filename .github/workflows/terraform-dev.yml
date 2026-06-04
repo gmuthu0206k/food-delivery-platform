@@ -1,0 +1,44 @@
+name: Terraform Dev Pipeline
+
+on:
+  pull_request:
+    paths:
+      - 'terraform/**'
+
+  push:
+    branches:
+      - main
+    paths:
+      - 'terraform/**'
+
+jobs:
+  terraform-checks:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+  
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ TERRAFORM_ROLE }}
+          aws-region: us-east-1
+      - name: Terraform Initialize
+        run: terraform init
+        working-directory: terraform/environments/dev
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+        working-directory: terraform/environments/dev
+      - name: Terraform Validate
+        run: terraform validate
+        working-directory: terraform/environments/dev
+      - name: Terraform plan
+        if: github.event_name == 'pull_request'
+        run: terraform plan
+        working-directory: terraform/environments/dev
